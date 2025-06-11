@@ -1,0 +1,140 @@
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import FormField from '../components/Reusables/FormField';
+import {
+  type RegisterFormData,
+  RegisterUserSchema,
+  type AuthContextType,
+  type CreateOrLoginUserResponse,
+} from '../../types';
+import { Link } from 'react-router-dom';
+import {
+  MdOutlineEmail,
+  MdLockOutline,
+  MdOutlineAlternateEmail,
+} from 'react-icons/md';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useAuth } from '../provider/authProvider';
+import axios from 'axios';
+import { FaRegUser } from 'react-icons/fa';
+
+export default function Register() {
+  const navigate = useNavigate();
+  const [formStatus, setFormStatus] = useState('idle');
+  const [error, setError] = useState<string | null>(null);
+  const { setToken } = useAuth() as AuthContextType;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(RegisterUserSchema),
+  });
+
+  const onSubmit = async (data: Omit<RegisterFormData, 'confirmPassword'>) => {
+    setFormStatus('submitting');
+    setError(null);
+    try {
+      const res = await axios.post<CreateOrLoginUserResponse>(
+        '/user/signup',
+        data,
+      );
+      setToken(res.data.token);
+      navigate('/app', { replace: true });
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        setError(err?.response?.data?.error || err?.message);
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } finally {
+      setFormStatus('idle');
+    }
+  };
+
+  return (
+    <div className='flex flex-4 flex-col justify-center p-8'>
+      {error && (
+        <div className='mt-4 rounded-lg bg-blue-100 py-4 text-center font-semibold'>
+          {error}
+        </div>
+      )}
+      <h1 className='mb-6 text-2xl font-bold text-white'>Create Account</h1>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className='flex max-w-5xl flex-col gap-3'
+      >
+        <div className='flex flex-col gap-1'>
+          <label className='font-bold text-slate-500'>Username</label>
+          <FormField
+            type='text'
+            placeholder='Enter your username'
+            name='userName'
+            register={register}
+            error={errors.userName}
+            Icon={FaRegUser}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='font-bold text-slate-500'>User handle</label>
+          <FormField
+            type='text'
+            placeholder='Enter your user handle'
+            name='userHandle'
+            register={register}
+            error={errors.userHandle}
+            Icon={MdOutlineAlternateEmail}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='font-bold text-slate-500'>Email</label>
+          <FormField
+            type='email'
+            placeholder='Enter your email address'
+            name='email'
+            register={register}
+            error={errors.email}
+            Icon={MdOutlineEmail}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='font-bold text-slate-500'>Password</label>
+          <FormField
+            type='password'
+            placeholder='Enter your password'
+            name='password'
+            register={register}
+            error={errors.password}
+            Icon={MdLockOutline}
+          />
+        </div>
+        <div className='flex flex-col gap-1'>
+          <label className='font-bold text-slate-500'>Confirm password</label>
+          <FormField
+            type='password'
+            placeholder='Enter your password again'
+            name='confirmPassword'
+            register={register}
+            error={errors.confirmPassword}
+            Icon={MdLockOutline}
+          />
+        </div>
+        <button
+          className='mt-2 h-10 cursor-pointer rounded-md bg-indigo-700 font-bold text-white hover:opacity-80'
+          type='submit'
+          disabled={formStatus === 'submitting'}
+        >
+          Sign Up
+        </button>
+      </form>
+      <div className='mt-4 max-w-5xl text-center text-white'>
+        Already have an account?{' '}
+        <Link to='/' className='font-bold text-blue-800 hover:underline'>
+          Sign in now!
+        </Link>
+      </div>
+    </div>
+  );
+}

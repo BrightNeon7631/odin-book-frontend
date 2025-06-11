@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@layer base {
+  @font-face {
+    font-family: "inter";
+    src: url(./assets/fonts/Inter.ttf);
+    
+  }
+
+  body {
+    @apply font-sans; /* Use Tailwind's utility class */
+    font-family: 'inter', sans-serif; /* Fallback to sans-serif */
+    background-color: #181d27;
+  }
+
+  .scrollbar::-webkit-scrollbar {
+    width: 10px;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+    border-radius: 8px;
+    background-color: #e7e7e7;
+    border: 1px solid #cacaca;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-color: #615f5f;
+}
+}
